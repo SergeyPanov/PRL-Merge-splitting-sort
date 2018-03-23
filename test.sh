@@ -2,7 +2,7 @@
 
 #pocet cisel bud zadam nebo 10 :)
 if [ $# -lt 1 ];then
-    numbers=17;
+    numbers=16;
 else
     numbers=$1;
 fi;
@@ -15,7 +15,7 @@ fi;
 dd if=/dev/random bs=1 count=$numbers of=numbers
 
 #spusteni
-/Users/sergeypanov/bin/mpi/bin/mpirun -np 4 mss.o
+/Users/sergeypanov/bin/mpi/bin/mpirun -np 3 mss.o
 
 #uklid
 rm -f oets numbers

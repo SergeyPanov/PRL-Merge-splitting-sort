@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
     //LIMIT PRO INDEXY
     int oddlimit= 2*(numprocs/2)-1;                 //limity pro sude
     int evenlimit= 2*((numprocs-1)/2);              //liche
-    int halfcycles= numprocs/2;
+    int halfcycles= ceil(numprocs/(double)2);
     int cycles=0;                                   //pocet cyklu pro pocitani slozitosti
     //if(myid == 0) cout<<oddlimit<<":"<<evenlimit<<endl;
 
@@ -244,7 +244,6 @@ int main(int argc, char *argv[])
         }//else if (sude)
         else{//sem muze vlezt jen proc, co je na konci
         }//else
-        cout << "------------------------" << endl;
 
     }//for pro linearitu
     //RAZENI--------------------------------------------------------------------
