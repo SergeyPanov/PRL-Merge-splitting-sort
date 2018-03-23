@@ -214,21 +214,23 @@ int main(int argc, char *argv[])
 
             cout << "Merged: " << myid << endl;
             showVector(merged_ints, myid);
-            
-            neigh_ints.clear();
+
+            my_ints.clear();
             for (int i = static_cast<int>(merged_ints.size() / 2); i < merged_ints.size(); ++i) {
+                my_ints.push_back(merged_ints[i]);
+            }
+
+            cout << "My: " << myid << endl;
+            showVector(my_ints, myid);
+
+            neigh_ints.clear();
+            for (int i = 0; i < merged_ints.size() / 2; ++i) {
                 neigh_ints.push_back(merged_ints[i]);
             }
 
             cout << "Neight of: " << myid << endl;
             showVector(neigh_ints, myid);
 
-            my_ints.clear();
-            for (int i = 0; i < merged_ints.size() / 2; ++i) {
-                my_ints.push_back(merged_ints[i]);
-            }
-            cout << "My: " << myid << endl;
-            showVector(my_ints, myid);
 
 
             send(neigh_ints, myid - 1);
