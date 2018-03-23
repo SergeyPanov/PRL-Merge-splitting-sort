@@ -61,50 +61,36 @@ int main(int argc, char *argv[])
 
             for (int i = index; i < index + numbs_for_proc; ++i) {
                 if (i >= unsortedInts.size()){
-                    unsortedInts.push_back(0);
+                    message.push_back(0);
+                } else{
+                    message.push_back(unsortedInts[i]);
                 }
-                cout << "Gonna send the message: " << unsortedInts[i] << " to the processes: " << invar << endl;
-                MPI_Send(&unsortedInts[i], 1, MPI_INT, invar, TAG, MPI_COMM_WORLD);
             }
             index += numbs_for_proc;
-//            MPI_Send(message.data(), static_cast<int>(message.size()), MPI_INT, invar, TAG, MPI_COMM_WORLD);
-
+            int len = static_cast<int>(message.size());
+            MPI_Send(&len, 1, MPI_UNSIGNED, invar, TAG, MPI_COMM_WORLD);
+            MPI_Send(message.data(), len, MPI_INT, invar, TAG, MPI_COMM_WORLD);
             ++invar;
         }
 
     }//nacteni souboru
 
-//    cout << "---------" << endl;
-//    for (int &unsortedInt : unsortedInts)
-//        cout << unsortedInt << ' ';
-//    cout << "\n---------" << endl;
-
-    cout << "Numbers for Proc ";
-    cout << numbs_for_proc << endl;
-
     //PRIJETI HODNOTY CISLA
     //vsechny procesory(vcetne mastera) prijmou hodnotu a zahlasi ji
-    for (int i = 0; i < numbs_for_proc; ++i) {
-        MPI_Recv(&mynumber, 1, MPI_INT, 0, TAG, MPI_COMM_WORLD, &stat); //buffer,velikost,typ,rank odesilatele,tag, skupina, stat
-        cout << "I'm: " << myid << " my number " << mynumber << endl;
+    unsigned len;
+    MPI_Recv(&len, 1, MPI_UNSIGNED, 0, TAG, MPI_COMM_WORLD, &stat); //Vezme pocet cisel
+    cout << "I'm " << myid << " want to receive " << len << " bytes" << endl;
+
+    my_ints.resize(len);
+    MPI_Recv(my_ints.data(), len, MPI_INT, 0, TAG, MPI_COMM_WORLD, &stat); //Nacte je do vektoru
+
+    sort(my_ints.begin(), my_ints.end());   // Seradi optimalnim linearnim algoritmem
+
+    for (int i = 0; i < my_ints.size(); ++i) {
+        cout << "I'm " << myid << " got number " << my_ints[i] << endl;
     }
 
 
-
-
-//    cout << "---------" << endl;
-//    cout << "id: " << myid << " " << end;
-//    for (int &my_int : my_ints)
-//        cout << " " << my_int << ' ';
-//    cout << "\n---------" << endl;
-
-    MPI_Finalize();
-    return 0;
-
-
-
-    MPI_Recv(&mynumber, 1, MPI_INT, 0, TAG, MPI_COMM_WORLD, &stat); //buffer,velikost,typ,rank odesilatele,tag, skupina, stat
-    cout<<"i am:"<<myid<<" my number is:"<<mynumber<<endl;
 
     //LIMIT PRO INDEXY
     int oddlimit= 2*(numprocs/2)-1;                 //limity pro sude
