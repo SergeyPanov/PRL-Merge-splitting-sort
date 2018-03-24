@@ -77,6 +77,12 @@ int main(int argc, char *argv[])
         }//while
         fin.close();
 
+        for (int j = 0; j < unsortedInts.size(); ++j) {
+            if (j == unsortedInts.size() - 1)
+                cout << unsortedInts[j] << endl;
+            else
+                cout << unsortedInts[j] << ' ';
+        }
 
         // Rozesle vsem procesorem posloupnosti cisel
         int index = 0;
@@ -87,11 +93,14 @@ int main(int argc, char *argv[])
             vector<int> message;
 
             for (int i = index; i < index + numbs_for_proc; ++i) {
-                if (i >= unsortedInts.size()){
-                    message.push_back(0);
-                } else{
-                    message.push_back(unsortedInts[i]);
-                }
+                if (i >= unsortedInts.size()) break;
+                message.push_back(unsortedInts[i]);
+
+//                if (i >= unsortedInts.size()){
+//                    message.push_back(0);
+//                } else{
+//                    message.push_back(unsortedInts[i]);
+//                }
             }
             index += numbs_for_proc;
             send(message, invar);
@@ -107,10 +116,11 @@ int main(int argc, char *argv[])
     recv(my_ints, 0);
 
     sort(my_ints.begin(), my_ints.end());   // Seradi optimalnim linearnim algoritmem
-    cout << "Initial " << endl;
-    for (int i = 0; i < my_ints.size(); ++i) {
-        cout << "I'm " << myid << " got number " << my_ints[i] << endl;
-    }
+
+//    cout << "Initial " << endl;
+//    for (int i = 0; i < my_ints.size(); ++i) {
+//        cout << "I'm " << myid << " got number " << my_ints[i] << endl;
+//    }
 
 
     //LIMIT PRO INDEXY
@@ -128,21 +138,11 @@ int main(int argc, char *argv[])
 
         //sude proc 
         if((!(myid%2) || myid==0) && (myid<oddlimit)){
-//            showVector(my_ints, myid);
-//            cout << "------" << endl;
-//            MPI_Send(&mynumber, 1, MPI_INT, myid+1, TAG, MPI_COMM_WORLD);          //poslu sousedovi svoje cislo
             send(my_ints, myid+1);
-//            MPI_Recv(&mynumber, 1, MPI_INT, myid+1, TAG, MPI_COMM_WORLD, &stat);   //a cekam na nizsi
-            recv(my_ints, myid + 1);
-//            cout<<"ss: "<<myid<<endl;
-//            cout << "Received numbers" << endl;
-//            for (int i = 0; i < my_ints.size(); ++i) {
-//                cout << "I'm " << myid << " got number " << my_ints[i] << endl;
-//            }
 
+            recv(my_ints, myid + 1);
         }//if sude
         else if(myid<=oddlimit){//liche prijimaji zpravu a vraceji mensi hodnotu (to je ten swap)
-//            MPI_Recv(&neighnumber, 1, MPI_INT, myid-1, TAG, MPI_COMM_WORLD, &stat); //jsem sudy a prijimam
 
             recv(neigh_ints, myid - 1);
 
@@ -154,55 +154,34 @@ int main(int argc, char *argv[])
             sort(merged_ints.begin(), merged_ints.end());
 
 
-            cout << "Merged: " << myid << endl;
-            showVector(merged_ints, myid);
-
             neigh_ints.clear();
             for (int i = 0; i < merged_ints.size() / 2; ++i) {
                 neigh_ints.push_back(merged_ints[i]);
             }
 
-            cout << "Neight of: " << myid << endl;
-            showVector(neigh_ints, myid);
 
             my_ints.clear();
             for (int i = static_cast<int>(merged_ints.size() / 2); i < merged_ints.size(); ++i) {
                 my_ints.push_back(merged_ints[i]);
             }
-            cout << "My: " << myid << endl;
-            showVector(my_ints, myid);
-
 
 
             send(neigh_ints, myid - 1);
-//
-//            if(neighnumber > mynumber){                                             //pokud je leveho sous cislo vetsi
-//                MPI_Send(&mynumber, 1, MPI_INT, myid-1, TAG, MPI_COMM_WORLD);       //poslu svoje
-//                mynumber= neighnumber;                                              //a vemu si jeho
-//            }
-//            else MPI_Send(&neighnumber, 1, MPI_INT, myid-1, TAG, MPI_COMM_WORLD);   //pokud je mensi nebo stejne vratim
-            //cout<<"sl: "<<myid<<endl;
         }//else if (liche)
         else{//sem muze vlezt jen proc, co je na konci
         }//else
 
         //liche proc 
         if((myid%2) && (myid<evenlimit)){
-//            showVector(my_ints, myid);
-//            cout << "------" << endl;
-//            MPI_Send(&mynumber, 1, MPI_INT, myid+1, TAG, MPI_COMM_WORLD);           //poslu sousedovi svoje cislo
+
             send(my_ints, myid+1);
-//            MPI_Recv(&mynumber, 1, MPI_INT, myid+1, TAG, MPI_COMM_WORLD, &stat);    //a cekam na nizsi
+
             recv(my_ints, myid + 1);
-//            cout<<"ll: "<<myid<<endl;
-//            cout << "Received numbers" << endl;
-//            for (int i = 0; i < my_ints.size(); ++i) {
-//                cout << "I'm " << myid << " got number " << my_ints[i] << endl;
-//            }
+
 
         }//if liche
         else if(myid<=evenlimit && myid!=0){//sude prijimaji zpravu a vraceji mensi hodnotu (to je ten swap)
-//            MPI_Recv(&neighnumber, 1, MPI_INT, myid-1, TAG, MPI_COMM_WORLD, &stat); //jsem sudy a prijimam
+
             recv(neigh_ints, myid - 1);
 
             //Spojit vektory
@@ -212,35 +191,21 @@ int main(int argc, char *argv[])
             merged_ints.insert(merged_ints.end(), neigh_ints.begin(), neigh_ints.end());
             sort(merged_ints.begin(), merged_ints.end());
 
-            cout << "Merged: " << myid << endl;
-            showVector(merged_ints, myid);
 
             my_ints.clear();
             for (int i = static_cast<int>(merged_ints.size() / 2); i < merged_ints.size(); ++i) {
                 my_ints.push_back(merged_ints[i]);
             }
 
-            cout << "My: " << myid << endl;
-            showVector(my_ints, myid);
-
             neigh_ints.clear();
             for (int i = 0; i < merged_ints.size() / 2; ++i) {
                 neigh_ints.push_back(merged_ints[i]);
             }
 
-            cout << "Neight of: " << myid << endl;
-            showVector(neigh_ints, myid);
-
 
 
             send(neigh_ints, myid - 1);
 
-//            if(neighnumber > mynumber){                                             //pokud je leveho sous cislo vetsi
-//                MPI_Send(&mynumber, 1, MPI_INT, myid-1, TAG, MPI_COMM_WORLD);       //poslu svoje
-//                mynumber= neighnumber;                                              //a vemu si jeho
-//            }
-//            else MPI_Send(&neighnumber, 1, MPI_INT, myid-1, TAG, MPI_COMM_WORLD);   //pokud je mensi nebo stejne vratim
-            //cout<<"ls: "<<myid<<endl;
         }//else if (sude)
         else{//sem muze vlezt jen proc, co je na konci
         }//else
@@ -254,33 +219,20 @@ int main(int argc, char *argv[])
     //final=(int*) malloc(numprocs*sizeof(int));
     for(int i=1; i<numprocs; i++){
         if(myid == i){
-//            for (int j = 0; j < my_ints.size(); ++j) {
-//                cout << "MY id: " << myid << " " << my_ints[j] << endl;
-//            }
             send(my_ints, 0);
-//            MPI_Send(&mynumber, 1, MPI_INT, 0, TAG,  MPI_COMM_WORLD);
         }
         if(myid == 0){
             recv(neigh_ints, i);
             sorted.insert(sorted.end(), neigh_ints.begin(), neigh_ints.end());
-//            MPI_Recv(&neighnumber, 1, MPI_INT, i, TAG, MPI_COMM_WORLD, &stat); //jsem 0 a prijimam
-//            final[i]=neighnumber;
+
         }//if sem master
     }//for
 
     if(myid == 0){
-//        for (int j = 0; j < my_ints.size(); ++j) {
-//            cout << "MY id: " << myid << " " << my_ints[j] << endl;
-//        }
-        //cout<<cycles<<endl;
-//        final[0]= mynumber;
         sorted.insert(sorted.begin(), my_ints.begin(), my_ints.end());
         for (int i = 0; i < sorted.size(); ++i) {
             cout << sorted[i] << endl;
         }
-//        for(int i=0; i<numprocs; i++){
-//            cout<<"proc: "<<i<<" num: "<<final[i]<<endl;
-//        }//for
     }//if vypis
     //cout<<"i am:"<<myid<<" my number is:"<<mynumber<<endl;
     //VYSLEDKY------------------------------------------------------------------
