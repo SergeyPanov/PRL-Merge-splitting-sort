@@ -13,10 +13,9 @@ procs=$2
 
 
 #vyrobeni souboru s random cisly
-dd if=/dev/random bs=1 count=$numbers of=numbers
+dd if=/dev/random bs=1 count=$numbers of=numbers 2> /dev/null
 
 #spusteni
 /Users/sergeypanov/bin/mpi/bin/mpirun -np $procs mss
-
 #uklid
 rm -f mss numbers

@@ -43,6 +43,8 @@ void showVector(vector<int>& vec, int me){
 
 int main(int argc, char *argv[])
 {
+    auto started = std::chrono::high_resolution_clock::now();
+
     int numprocs;               //pocet procesoru
     int myid;                   //muj rank
     int neighnumber;            //hodnota souseda
@@ -77,7 +79,7 @@ int main(int argc, char *argv[])
             invar++;
         }//while
         fin.close();
-
+        auto started = std::chrono::high_resolution_clock::now();
         for (int j = 0; j < unsortedInts.size(); ++j) {
             if (j == unsortedInts.size() - 1)
                 cout << unsortedInts[j] << endl;
@@ -116,10 +118,10 @@ int main(int argc, char *argv[])
 
     recv(my_ints, 0);
 
-    cout << "Initial " << endl;
-    for (int i = 0; i < my_ints.size(); ++i) {
-        cout << "I'm " << myid << " got number " << my_ints[i] << endl;
-    }
+//    cout << "Initial " << endl;
+//    for (int i = 0; i < my_ints.size(); ++i) {
+//        cout << "I'm " << myid << " got number " << my_ints[i] << endl;
+//    }
 
     sort(my_ints.begin(), my_ints.end());   // Seradi optimalnim linearnim algoritmem
 
@@ -221,8 +223,8 @@ int main(int argc, char *argv[])
     //final=(int*) malloc(numprocs*sizeof(int));
     for(int i=1; i<numprocs; i++){
         if(myid == i){
-            cout << "I'm: " << myid<< endl;
-            showVector(my_ints, myid);
+//            cout << "I'm: " << myid<< endl;
+//            showVector(my_ints, myid);
             send(my_ints, 0);
         }
         if(myid == 0){
@@ -237,12 +239,20 @@ int main(int argc, char *argv[])
         for (int i = 0; i < sorted.size(); ++i) {
             cout << sorted[i] << endl;
         }
+        cout << "---" << endl;
+        auto done = std::chrono::high_resolution_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(done - started).count() << endl;
     }//if vypis
     //cout<<"i am:"<<myid<<" my number is:"<<mynumber<<endl;
     //VYSLEDKY------------------------------------------------------------------
 
 
     MPI_Finalize();
+
+
+
+
+
     return 0;
 
 }//main
