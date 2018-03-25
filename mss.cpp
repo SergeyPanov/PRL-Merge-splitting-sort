@@ -9,6 +9,7 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
+#include <algorithm>
 
 using namespace std;
 
@@ -115,12 +116,13 @@ int main(int argc, char *argv[])
 
     recv(my_ints, 0);
 
+    cout << "Initial " << endl;
+    for (int i = 0; i < my_ints.size(); ++i) {
+        cout << "I'm " << myid << " got number " << my_ints[i] << endl;
+    }
+
     sort(my_ints.begin(), my_ints.end());   // Seradi optimalnim linearnim algoritmem
 
-//    cout << "Initial " << endl;
-//    for (int i = 0; i < my_ints.size(); ++i) {
-//        cout << "I'm " << myid << " got number " << my_ints[i] << endl;
-//    }
 
 
     //LIMIT PRO INDEXY
@@ -219,6 +221,8 @@ int main(int argc, char *argv[])
     //final=(int*) malloc(numprocs*sizeof(int));
     for(int i=1; i<numprocs; i++){
         if(myid == i){
+            cout << "I'm: " << myid<< endl;
+            showVector(my_ints, myid);
             send(my_ints, 0);
         }
         if(myid == 0){
