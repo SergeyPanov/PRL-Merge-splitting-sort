@@ -4,7 +4,7 @@
  *
  */
 
-#include "/Users/sergeypanov/bin/mpi/include/mpi.h"
+#include <mpi.h>
 #include <iostream>
 #include <fstream>
 #include <vector>
