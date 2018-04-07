@@ -11,15 +11,17 @@
 #include <cmath>
 #include <algorithm>
 
-using namespace std;
 
+using namespace std;
 #define TAG 0
 
 void send(vector<int> const& vec, int dest){
     int len = static_cast<int>(vec.size());
-    MPI_Send(&len, 1, MPI_UNSIGNED, dest, TAG, MPI_COMM_WORLD);
+    MPI_Request  request;
+    MPI_Isend(&len, 1, MPI_UNSIGNED, dest, TAG, MPI_COMM_WORLD, &request);
+
     if (len != 0)
-        MPI_Send(vec.data(), len, MPI_INT, dest, TAG, MPI_COMM_WORLD);
+        MPI_Isend(vec.data(), len, MPI_INT, dest, TAG, MPI_COMM_WORLD, &request);
 }
 
 
@@ -43,8 +45,6 @@ void showVector(vector<int>& vec, int me){
 
 int main(int argc, char *argv[])
 {
-    auto started = std::chrono::high_resolution_clock::now();
-
     int numprocs;               //pocet procesoru
     int myid;                   //muj rank
     int neighnumber;            //hodnota souseda
@@ -65,21 +65,19 @@ int main(int argc, char *argv[])
     */
     vector<int> unsortedInts;
     if(myid == 0){
-        char input[]= "numbers";                          //jmeno souboru    
-        int number;                                     //hodnota pri nacitani souboru
-        int invar= 0;                                   //invariant- urcuje cislo proc, kteremu se bude posilat
-        fstream fin;                                    //cteni ze souboru
+        char input[]= "numbers";                          //Jmeno souboru
+        int number;                                     //Hodnota pri nacitani souboru
+        int invar= 0;                                   //Invariant- urcuje cislo proc, kteremu se bude posilat
+        fstream fin;                                    //Cteni ze souboru
         fin.open(input, ios::in);
 
         while(fin.good()){
             number= fin.get();
-            if(!fin.good()) break;                      //nacte i eof, takze vyskocim
+            if(!fin.good()) break;                      //Nacte i eof, takze vyskocim
             unsortedInts.push_back(number);             //Nacte vse cisla ze vstupniho souboru
-//            MPI_Send(&number, 1, MPI_INT, invar, TAG, MPI_COMM_WORLD); //buffer,velikost,typ,rank prijemce,tag,komunikacni skupina
-            invar++;
         }//while
         fin.close();
-        auto started = std::chrono::high_resolution_clock::now();
+
         for (int j = 0; j < unsortedInts.size(); ++j) {
             if (j == unsortedInts.size() - 1)
                 cout << unsortedInts[j] << endl;
@@ -87,34 +85,33 @@ int main(int argc, char *argv[])
                 cout << unsortedInts[j] << ' ';
         }
 
+
         // Rozesle vsem procesorem posloupnosti cisel
         int index = 0;
         invar = 0;
         numbs_for_proc = static_cast<int>(ceil(unsortedInts.size() / (double)numprocs));
-
         for (int proc_id = 0; proc_id < numprocs; ++proc_id) {
             vector<int> message;
+
 
             for (int i = index; i < index + numbs_for_proc; ++i) {
                 if (i >= unsortedInts.size()) break;
                 message.push_back(unsortedInts[i]);
-
-//                if (i >= unsortedInts.size()){
-//                    message.push_back(0);
-//                } else{
-//                    message.push_back(unsortedInts[i]);
-//                }
             }
+
             index += numbs_for_proc;
-            send(message, invar);
+            send(message, proc_id);
+
             ++invar;
         }
+
+
+
 
     }//nacteni souboru
 
     //PRIJETI HODNOTY CISLA
     //vsechny procesory(vcetne mastera) prijmou hodnotu a zahlasi ji
-
 
     recv(my_ints, 0);
 
@@ -126,7 +123,6 @@ int main(int argc, char *argv[])
     sort(my_ints.begin(), my_ints.end());   // Seradi optimalnim linearnim algoritmem
 
 
-
     //LIMIT PRO INDEXY
     int oddlimit= 2*(numprocs/2)-1;                 //limity pro sude
     int evenlimit= 2*((numprocs-1)/2);              //liche
@@ -134,11 +130,11 @@ int main(int argc, char *argv[])
     int cycles=0;                                   //pocet cyklu pro pocitani slozitosti
     //if(myid == 0) cout<<oddlimit<<":"<<evenlimit<<endl;
 
-
     //RAZENI------------chtelo by to umet pocitat cykly nebo neco na testy------
     //cyklus pro linearitu
     for(int j=1; j<=halfcycles; j++){
         cycles++;           //pocitame cykly, abysme mohli udelat krasnej graf:)
+
 
         //sude proc 
         if((!(myid%2) || myid==0) && (myid<oddlimit)){
@@ -162,13 +158,10 @@ int main(int argc, char *argv[])
             for (int i = 0; i < merged_ints.size() / 2; ++i) {
                 neigh_ints.push_back(merged_ints[i]);
             }
-
-
             my_ints.clear();
             for (int i = static_cast<int>(merged_ints.size() / 2); i < merged_ints.size(); ++i) {
                 my_ints.push_back(merged_ints[i]);
             }
-
 
             send(neigh_ints, myid - 1);
         }//else if (liche)
@@ -206,8 +199,6 @@ int main(int argc, char *argv[])
                 neigh_ints.push_back(merged_ints[i]);
             }
 
-
-
             send(neigh_ints, myid - 1);
 
         }//else if (sude)
@@ -239,9 +230,6 @@ int main(int argc, char *argv[])
         for (int i = 0; i < sorted.size(); ++i) {
             cout << sorted[i] << endl;
         }
-        cout << "---" << endl;
-        auto done = std::chrono::high_resolution_clock::now();
-        std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(done - started).count() << endl;
     }//if vypis
     //cout<<"i am:"<<myid<<" my number is:"<<mynumber<<endl;
     //VYSLEDKY------------------------------------------------------------------
